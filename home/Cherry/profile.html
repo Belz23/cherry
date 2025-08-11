@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherry Profile Area</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* General Setup and Variables */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #f4f6f8;
+            --cherry-gradient: linear-gradient(135deg, #a466ea 0%, #ca4fce 100%);
+            --text-dark: #333;
+            --text-muted: #666;
+            --border-light: #e2e8f0;
+            --gallery-bg: #d1d5db;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .profile-container {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            border: none;
+            overflow: hidden;
+        }
+
+        /* Profile Image Section */
+        .profile-image-section {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .profile-image-container {
+            width: 100%;
+            aspect-ratio: 1;
+            background-color: var(--gallery-bg);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .profile-image.active {
+            opacity: 1;
+        }
+
+        /* Carousel Navigation Arrows */
+        .carousel-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .carousel-nav:hover {
+            background: rgba(0, 0, 0, 0.6);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .carousel-nav.prev {
+            left: 10px;
+        }
+
+        .carousel-nav.next {
+            right: 10px;
+        }
+
+        .carousel-nav .material-icons {
+            font-size: 24px;
+        }
+
+        /* Carousel Indicator Dots */
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .indicator-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d1d5db;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .indicator-dot.active {
+            background: var(--cherry-gradient);
+            width: 20px;
+            border-radius: 4px;
+        }
+
+        /* User Info Section */
+        .user-info {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .username {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .location-status {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .profile-description {
+            font-size: 13px;
+            color: var(--text-dark);
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        /* Contact Button */
+        .contact-button {
+            background: var(--cherry-gradient);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(164, 102, 234, 0.25);
+        }
+
+        .contact-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(164, 102, 234, 0.35);
+        }
+
+        /* Toggle Section (Gallery/Info) */
+        .toggle-section {
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden; /* Prevent horizontal scrollbar */
+        }
+        
+        .toggle-navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .toggle-nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            transition: color 0.3s ease;
+        }
+
+        .current-view {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 80px;
+            margin: 0 10px;
+        }
+
+        /* Content Views Container */
+        .content-views-container {
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .content-views {
+            position: relative;
+            width: 200%; /* Two views */
+            display: flex;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .view {
+            width: 50%;
+            flex-shrink: 0;
+            padding: 0 5px; /* Add some padding to avoid content touching edges */
+        }
+        
+        /* This class will be toggled by JS to slide */
+        .content-views.show-info {
+            transform: translateX(-50%);
+        }
+
+        /* Gallery View */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .gallery-item {
+            aspect-ratio: 1;
+            background-color: var(--gallery-bg);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .gallery-item:hover {
+            transform: scale(1.05);
+        }
+
+        /* Info View */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .info-interests {
+            grid-column: 1 / -1; /* Make this item span both columns */
+        }
+
+        .interests-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .interest-tag {
+            background: #e9ecef;
+            color: var(--text-dark);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* Similar Girls Section */
+        .similar-section {
+            border-top: 1px solid #e5e7eb;
+            padding: 20px;
+        }
+
+        .similar-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .similar-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .similar-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .similar-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 15px rgba(0,0,0, 0.08);
+        }
+
+        .similar-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 10px auto;
+            object-fit: cover;
+        }
+
+        .similar-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        /* Back Button Section */
+        .back-section {
+            padding: 0 20px 20px 20px;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 20px;
+        }
+
+        .back-button {
+            background: #e9ecef;
+            color: var(--text-dark);
+            border: none;
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .back-button:hover {
+            background: #dee2e6;
+        }
+        
+        /* Touch/Swipe Support */
+        .swipeable {
+            touch-action: pan-y; /* Allow vertical scroll, but we'll manage horizontal */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <!-- Profile Image Section -->
+        <div class="profile-image-section">
+            <div class="profile-image-container swipeable" id="imageContainer">
+                <!-- Images for the carousel -->
+                <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop&crop=faces" alt="Profile 1" class="profile-image active" onerror="this.onerror=null;this.src='https://placehold.co/400x400/ca4fce/ffffff?text=Image+1';">
+                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop&crop=faces" alt="Profile 2" class="profile-image" onerror="this.onerror=null;this.src='https://placehold.co/400x400/ca4fce/ffffff?text=Image+2';">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=faces" alt="Profile 3" class="profile-image" onerror="this.onerror=null;this.src='https://placehold.co/400x400/ca4fce/ffffff?text=Image+3';">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=faces" alt="Profile 4" class="profile-image" onerror="this.onerror=null;this.src='https://placehold.co/400x400/ca4fce/ffffff?text=Image+4';">
+                
+                <!-- Navigation Arrows -->
+                <button class="carousel-nav prev" onclick="prevImage()">
+                    <span class="material-icons">chevron_left</span>
+                </button>
+                <button class="carousel-nav next" onclick="nextImage()">
+                    <span class="material-icons">chevron_right</span>
+                </button>
+            </div>
+            <!-- Indicator Dots -->
+            <div class="carousel-indicators" id="indicatorContainer">
+                <!-- Dots will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- User Info -->
+        <div class="user-info">
+            <h1 class="username">laura_smith</h1>
+            <p class="location-status">Sandton</p>
+            <p class="profile-description">Hey lovelies, contact me to meet up!</p>
+            <button class="contact-button">
+                <span class="material-icons">phone</span>
+                I'm available! See number
+            </button>
+        </div>
+
+        <!-- Toggle Section (Gallery/Info) -->
+        <div class="toggle-section">
+            <div class="toggle-navigation">
+                <button class="toggle-nav-btn" onclick="switchToView('gallery')">
+                    <span class="material-icons">grid_view</span>
+                </button>
+                <div class="current-view" id="currentViewText">Gallery</div>
+                <button class="toggle-nav-btn" onclick="switchToView('info')">
+                    <span class="material-icons">person</span>
+                </button>
+            </div>
+
+            <div class="content-views-container swipeable" id="contentViewsContainer">
+                <div class="content-views" id="contentViews">
+                    <!-- Gallery View -->
+                    <div class="view gallery-view">
+                        <div class="gallery-grid">
+                            <div class="gallery-item" style="background-image: url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=100&h=100&fit=crop&crop=faces'); background-size: cover;"></div>
+                            <div class="gallery-item" style="background-image: url('https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=faces'); background-size: cover;"></div>
+                            <div class="gallery-item" style="background-image: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces'); background-size: cover;"></div>
+                            <div class="gallery-item" style="background-image: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces'); background-size: cover;"></div>
+                            <div class="gallery-item" style="background-image: url('https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&h=100&fit=crop&crop=faces'); background-size: cover;"></div>
+                            <div class="gallery-item" style="background-image: url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces'); background-size: cover;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Info View -->
+                    <div class="view info-view">
+                        <div class="info-grid">
+                            <div class="info-item"><div class="info-label">Height</div><div class="info-value">5' 7" (170cm)</div></div>
+                            <div class="info-item"><div class="info-label">Age</div><div class="info-value">24</div></div>
+                            <div class="info-item"><div class="info-label">Body Type</div><div class="info-value">Athletic</div></div>
+                            <div class="info-item"><div class="info-label">Background</div><div class="info-value">Caucasian</div></div>
+                            <div class="info-item"><div class="info-label">Smoker</div><div class="info-value">No</div></div>
+                            <div class="info-item"><div class="info-label">Alcohol</div><div class="info-value">Socially</div></div>
+                            <div class="info-item"><div class="info-label">Piercings</div><div class="info-value">Ears</div></div>
+                            <div class="info-item"><div class="info-label">Tattoos</div><div class="info-value">None</div></div>
+                            <div class="info-item info-interests">
+                                <div class="info-label">Additional Interests</div>
+                                <div class="interests-tags">
+                                    <span class="interest-tag">Running</span>
+                                    <span class="interest-tag">Hiking</span>
+                                    <span class="interest-tag">Diving</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Similar Girls Section -->
+        <div class="similar-section">
+            <h2 class="similar-header">Similar Girls</h2>
+            <div class="similar-grid">
+                <div class="similar-card">
+                    <img src="https://images.unsplash.com/photo-1554151228-14d9def656e4?w=60&h=60&fit=crop&crop=faces" class="similar-image" alt="Similar 1" onerror="this.onerror=null;this.src='https://placehold.co/60x60/a466ea/ffffff?text=ER';">
+                    <div class="similar-name">emma_rose</div>
+                </div>
+                <div class="similar-card">
+                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=60&h=60&fit=crop&crop=faces" class="similar-image" alt="Similar 2" onerror="this.onerror=null;this.src='https://placehold.co/60x60/a466ea/ffffff?text=SM';">
+                    <div class="similar-name">sophie_m</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button Section -->
+        <div class="back-section">
+            <button class="back-button" onclick="window.location.href='#'">
+                <span class="material-icons">arrow_back</span>
+                Back to Model Search
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- State Variables ---
+        let currentSlide = 0;
+        let currentView = 'gallery'; // 'gallery' or 'info'
+        const images = document.querySelectorAll('.profile-image');
+        const totalSlides = images.length;
+        
+        const indicatorContainer = document.getElementById('indicatorContainer');
+        const contentViews = document.getElementById('contentViews');
+        const viewText = document.getElementById('currentViewText');
+
+        // --- Carousel Logic ---
+        function updateCarousel() {
+            // Update images
+            images.forEach((img, index) => {
+                img.classList.toggle('active', index === currentSlide);
+            });
+            // Update indicator dots
+            const dots = document.querySelectorAll('.indicator-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
+        }
+
+        function nextImage() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateCarousel();
+        }
+
+        function prevImage() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateCarousel();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateCarousel();
+        }
+        
+        // --- View Switcher Logic ---
+        function switchToView(view) {
+            if (view === currentView) return;
+            currentView = view;
+            
+            if (view === 'info') {
+                contentViews.classList.add('show-info');
+                viewText.textContent = 'Info';
+            } else {
+                contentViews.classList.remove('show-info');
+                viewText.textContent = 'Gallery';
+            }
+        }
+
+        // --- Swipe Logic ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const swipeThreshold = 50; // Minimum distance for a swipe
+
+        function handleTouchStart(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }
+
+        function handleTouchEnd(e, target) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe(target);
+        }
+
+        function handleSwipe(target) {
+            const deltaX = touchEndX - touchStartX;
+            if (Math.abs(deltaX) < swipeThreshold) return; // Not a valid swipe
+
+            if (deltaX < 0) { // Swiped left
+                if(target === 'image') nextImage();
+                if(target === 'view') switchToView('info');
+            } else { // Swiped right
+                if(target === 'image') prevImage();
+                if(target === 'view') switchToView('gallery');
+            }
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Generate indicator dots
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('indicator-dot');
+                dot.onclick = () => goToSlide(i);
+                indicatorContainer.appendChild(dot);
+            }
+            updateCarousel(); // Set initial state for carousel
+
+            // Add swipe event listeners
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+            imageContainer.addEventListener('touchend', (e) => handleTouchEnd(e, 'image'), { passive: true });
+
+            const contentViewsContainer = document.getElementById('contentViewsContainer');
+            contentViewsContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+            contentViewsContainer.addEventListener('touchend', (e) => handleTouchEnd(e, 'view'), { passive: true });
+        });
+
+    </script>
+</body>
+</html>

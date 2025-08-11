@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherry</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #f4f6f8;
+            --cherry-gradient: linear-gradient(135deg, #a466ea 0%, #ca4fce 100%);
+            --text-dark: #333;
+            --text-muted: #a0aec0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 70px;
+            height: calc(100vh - 40px);
+            max-height: calc(100vh - 40px);
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            font-size: 14px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: sticky;
+            top: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.expanded {
+            width: 320px;
+            padding: 30px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo img {
+            max-width: 180px;
+            height: 60px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease 0.1s;
+        }
+
+        .sidebar.expanded .logo img {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .logo-icon {
+            width: 30px;
+            height: 30px;
+            background: var(--cherry-gradient);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.expanded .logo-icon {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        #toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            color: #666;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+        }
+
+        #toggle-btn:hover {
+            background-color: #f8f9fa;
+            color: #333;
+            transform: scale(1.05);
+        }
+
+        #toggle-btn .material-icons {
+            font-size: 20px;
+            transition: transform 0.3s ease;
+            transform: rotate(0deg);
+        }
+
+        .sidebar.expanded #toggle-btn .material-icons {
+            transform: rotate(180deg);
+        }
+
+        .nav-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f8f9fa;
+            padding-right: 5px;
+        }
+        
+        .nav-scroll-container::-webkit-scrollbar { width: 8px; }
+        .nav-scroll-container::-webkit-scrollbar-track { background: #f8f9fa; border-radius: 4px; }
+        .nav-scroll-container::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; border: 2px solid #f8f9fa; }
+        .nav-scroll-container::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
+
+        .nav-section {
+            list-style: none;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .section-header {
+            font-size: 11px;
+            font-weight: 700;
+            color: #8e9aaf;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            user-select: none;
+            opacity: 0;
+            transform: translateX(-20px);
+            background: transparent;
+        }
+
+        .sidebar.expanded .section-header {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .section-header:hover {
+            background-color: #f8f9fa;
+            color: #495057;
+        }
+
+        .section-header.active {
+            background: var(--cherry-gradient);
+            color: white;
+        }
+
+        .dropdown-arrow {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        .nav-section.expanded .dropdown-arrow {
+            transform: rotate(90deg);
+        }
+
+        .nav-items {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .nav-section.expanded .nav-items {
+            max-height: 500px;
+            padding: 8px 0;
+        }
+
+        .nav-item {
+            list-style: none;
+            margin: 0;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .nav-section.expanded .nav-item { opacity: 1; transform: translateY(0); }
+        .nav-section.expanded .nav-item:nth-child(1) { transition-delay: 0.1s; }
+        .nav-section.expanded .nav-item:nth-child(2) { transition-delay: 0.15s; }
+        .nav-section.expanded .nav-item:nth-child(3) { transition-delay: 0.2s; }
+        .nav-section.expanded .nav-item:nth-child(4) { transition-delay: 0.25s; }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #495057;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin: 2px 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            background-color: white;
+            color: #d066ea;
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-link.active {
+            background: var(--cherry-gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .nav-icon .material-icons { font-size: 18px; }
+        .nav-text { font-weight: 500; white-space: nowrap; }
+
+        .sidebar:not(.expanded) .nav-scroll-container { overflow: visible; }
+        .sidebar:not(.expanded) .nav-section { margin-bottom: 15px; }
+        .sidebar:not(.expanded) .section-header { opacity: 0; pointer-events: none; }
+        .sidebar:not(.expanded) .nav-items { max-height: none; padding: 0; background: transparent; margin: 0; }
+        .sidebar:not(.expanded) .nav-item { opacity: 1; transform: none; margin-bottom: 8px; }
+        .sidebar:not(.expanded) .nav-link { padding: 12px; margin: 0; border-radius: 8px; justify-content: center; position: relative; }
+        .sidebar:not(.expanded) .nav-text {
+            position: absolute;
+            left: 60px;
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-10px);
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+        .sidebar:not(.expanded) .nav-text::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            border-right: 4px solid #333;
+        }
+        .sidebar:not(.expanded) .nav-link:hover .nav-text { opacity: 1; transform: translateX(0); }
+        .sidebar:not(.expanded) .nav-icon { margin-right: 0; }
+
+        /* Main Content Area */
+        main {
+            min-width: 0;
+        }
+        
+        .content-section {
+            display: none; /* Hidden by default */
+        }
+        
+        .content-section.active {
+            display: block; /* Show active section */
+        }
+
+        /* Feed Grid Styles */
+        .feed-container {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 30px;
+            height: calc(100vh - 40px);
+            overflow-y: auto;
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .sidebar:not(.expanded) ~ main .explore-grid {
+            grid-auto-rows: minmax(calc((100vh - 120px) / 1.7), auto);
+            gap: 5px;
+        }
+
+        .explore-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-auto-rows: minmax(calc((100vh - 120px) / 1.6), auto);
+            gap: 4px;
+            width: 100%;
+            max-width: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .small-box, .large-box {
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .small-box:hover, .large-box:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .large-box { grid-row: span 2; }
+        .right-side { grid-column: 3 / 4; }
+        .left-side { grid-column: 1 / 2; }
+
+        .small-box:nth-child(odd) { background: linear-gradient(135deg,  #a466ea , #ca4fce); }
+        .small-box:nth-child(even) { background: linear-gradient(135deg,  #a466ea , #ca4fce); }
+        .large-box:nth-child(odd) { background: linear-gradient(135deg,  #a466ea , #4f66ce); }
+        .large-box:nth-child(even) { background: linear-gradient(135deg,  #a466ea , #4f66ce); }
+
+        .content {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Reels Section Styles */
+        .reels-section-container {
+            height: calc(100vh - 40px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+
+        .reel-wrapper {
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            max-height: 800px;
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .reels-container {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .reels-container::-webkit-scrollbar { display: none; }
+
+        .reel-item {
+            height: 100%;
+            width: 100%;
+            position: relative;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+        }
+
+        .reel-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left { display: flex; align-items: center; gap: 12px; }
+
+        .back-btn, .camera-btn {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: none;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover, .camera-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .header-title { font-size: 18px; font-weight: 700; color: white; }
+
+        .video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #333 0%, #2a2a2a 25%, #333 50%, #2a2a2a 75%, #333 100%);
+            background-size: 40px 40px;
+            animation: backgroundMove 4s linear infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes backgroundMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 40px; }
+        }
+
+        .play-icon {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .play-icon:hover { transform: scale(1.1); }
+        .play-icon .material-icons { font-size: 28px; color: #333; margin-left: 4px; }
+
+        .reel-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            padding: 20px;
+            background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+        }
+
+        .user-section { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--cherry-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        .user-info { flex: 1; }
+        .username { font-size: 14px; font-weight: 600; color: white; margin-bottom: 2px; }
+        .user-meta { font-size: 11px; color: var(--text-muted); }
+        .reel-caption { margin-bottom: 12px; font-size: 13px; line-height: 1.3; color: white; }
+
+        .contact-btn {
+            width: 100%;
+            background: white;
+            color: #000;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .contact-btn:hover { background: #f0f0f0; transform: translateY(-1px); }
+
+        .reaction-buttons {
+            position: absolute;
+            bottom: 100px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 25;
+        }
+        .reaction-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .reaction-btn:hover { transform: scale(1.1); background: rgba(255, 255, 255, 0.3); }
+        .reaction-btn.liked { background: #ff4757; }
+        .reaction-btn .material-icons { font-size: 20px; color: white; }
+        .reaction-count {
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--cherry-gradient);
+            color: white;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            body { grid-template-columns: auto 1fr; }
+            .explore-grid { width: 100%; max-width: 600px; }
+        }
+
+        @media (max-width: 768px) {
+            body { grid-template-columns: 1fr; padding: 10px; overflow-x: hidden; }
+            .sidebar { position: fixed; top: 10px; left: 10px; z-index: 1000; height: calc(100vh - 20px); max-height: calc(100vh - 20px); }
+            .sidebar:not(.expanded) { width: 60px; }
+            main { padding-left: 70px; }
+            .feed-container { padding: 20px; }
+            .explore-grid { width: 100%; max-width: none; grid-template-columns: repeat(2, 1fr); }
+            .large-box { grid-column: auto / auto !important; grid-row: span 1 !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar" role="navigation" aria-label="Main navigation">
+        <div class="logo-section">
+            <div class="logo">
+                <div class="logo-icon">🍒</div>
+                <img src="images/Pink Cherry.png" alt="Cherry-Logo" width="180" height="60">
+            </div>
+            <button id="toggle-btn" aria-label="Toggle navigation menu">
+                <span class="material-icons">chevron_right</span>
+            </button>
+        </div>
+
+        <div class="nav-scroll-container">
+            <ul class="nav-section" data-section="explore">
+                <li class="section-header" data-section="explore">
+                    <span>Explore Cherry</span>
+                    <span class="material-icons dropdown-arrow">chevron_right</span>
+                </li>
+                <div class="nav-items">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active" data-page="feed" aria-label="Go to Your Feed">
+                            <span class="nav-icon"><span class="material-icons">home</span></span>
+                            <span class="nav-text">Your Feed</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" data-page="reels" aria-label="Go to Reels">
+                            <span class="nav-icon"><span class="material-icons">movie</span></span>
+                            <span class="nav-text">Reels</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" aria-label="Find and Meet">
+                            <span class="nav-icon"><span class="material-icons">search</span></span>
+                            <span class="nav-text">Find & Meet</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" aria-label="Find and Post Jobs">
+                            <span class="nav-icon"><span class="material-icons">work</span></span>
+                            <span class="nav-text">Jobs</span>
+                        </a>
+                    </li>
+                </div>
+            </ul>
+            <ul class="nav-section" data-section="signup">
+                <li class="section-header" data-section="signup">
+                    <span>Sign Up</span>
+                    <span class="material-icons dropdown-arrow">chevron_right</span>
+                </li>
+                <div class="nav-items">
+                    <li class="nav-item">
+                        <a href="#join-model" class="nav-link" aria-label="Join as a Model">
+                            <span class="nav-icon">
+                                <span class="material-icons">person_add</span>
+                            </span>
+                            <span class="nav-text">Join as Model</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#join-client" class="nav-link" aria-label="Join as a Client">
+                            <span class="nav-icon">
+                                <span class="material-icons">account_circle</span>
+                            </span>
+                            <span class="nav-text">Join as Client</span>
+                        </a>
+                    </li>
+                </div>
+            </ul>
+
+            <ul class="nav-section" data-section="login">
+                <li class="section-header" data-section="login">
+                    <span>Already a Member?</span>
+                    <span class="material-icons dropdown-arrow">chevron_right</span>
+                </li>
+                <div class="nav-items">
+                    <li class="nav-item">
+                        <a href="#model-login" class="nav-link" aria-label="Model Login">
+                            <span class="nav-icon">
+                                <span class="material-icons">lock</span>
+                            </span>
+                            <span class="nav-text">Model Login</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#client-login" class="nav-link" aria-label="Client Login">
+                            <span class="nav-icon">
+                                <span class="material-icons">login</span>
+                            </span>
+                            <span class="nav-text">Client Login</span>
+                        </a>
+                    </li>
+                </div>
+            </ul>
+
+            <ul class="nav-section" data-section="settings">
+                <li class="section-header" data-section="settings">
+                    <span>Settings</span>
+                    <span class="material-icons dropdown-arrow">chevron_right</span>
+                </li>
+                <div class="nav-items">
+                    <li class="nav-item">
+                        <a href="#account-settings" class="nav-link" aria-label="Account Settings">
+                            <span class="nav-icon">
+                                <span class="material-icons">settings</span>
+                            </span>
+                            <span class="nav-text">Account Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#notifications" class="nav-link" aria-label="Notifications">
+                            <span class="nav-icon">
+                                <span class="material-icons">notifications</span>
+                            </span>
+                            <span class="nav-text">Notifications</span>
+                        </a>
+                    </li>
+                </div>
+            </ul>
+
+            <ul class="nav-section" data-section="help">
+                <li class="section-header" data-section="help">
+                    <span>Help & Support</span>
+                    <span class="material-icons dropdown-arrow">chevron_right</span>
+                </li>
+                <div class="nav-items">
+                    <li class="nav-item">
+                        <a href="#faq" class="nav-link" aria-label="FAQ">
+                            <span class="nav-icon">
+                                <span class="material-icons">help</span>
+                            </span>
+                            <span class="nav-text">FAQ</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#contact" class="nav-link" aria-label="Contact Support">
+                            <span class="nav-icon">
+                                <span class="material-icons">support</span>
+                            </span>
+                            <span class="nav-text">Contact Support</span>
+                        </a>
+                    </li>
+                </div>
+            </ul>
+            
+             <!-- Other nav sections from your HTML -->
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <main>
+        <!-- FEED SECTION (HOMEPAGE) -->
+        <section class="content-section active" id="feed-section">
+            <div class="feed-container">
+                <div class="explore-grid">
+                     <!-- Grid items from your HTML -->
+                    <div class="small-box"><div class="content">Post 1</div></div>
+                    <div class="small-box"><div class="content">Post 2</div></div>
+                    <div class="large-box right-side" style="grid-row: 1 / span 2"><div class="content">Reel 1</div></div>
+                    <div class="small-box"><div class="content">Post 3</div></div>
+                    <div class="small-box"><div class="content">Post 4</div></div>
+                    <div class="large-box left-side" style="grid-row: 3 / span 2"><div class="content">Reel 2</div></div>
+                    <div class="small-box"><div class="content">Post 5</div></div>
+                    <div class="small-box"><div class="content">Post 6</div></div>
+                    <div class="small-box"><div class="content">Post 7</div></div>
+                    <div class="small-box"><div class="content">Post 8</div></div>
+                    <div class="small-box"><div class="content">Post 9</div></div>
+                    <div class="small-box"><div class="content">Post 10</div></div>
+                    <div class="large-box right-side" style="grid-row: 5 / span 2"><div class="content">Reel 3</div></div>
+                    <div class="small-box"><div class="content">Post 11</div></div>
+                    <div class="small-box"><div class="content">Post 12</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- REELS SECTION -->
+        <section class="content-section" id="reels-section">
+            <div class="reels-section-container">
+                <div class="reel-wrapper">
+                    <div class="reels-container">
+                        <!-- Reel 1 -->
+                        <div class="reel-item">
+                            <div class="reel-header">
+                                <div class="header-left">
+                                    <button class="back-btn"><span class="material-icons">arrow_back</span></button>
+                                    <h3 class="header-title">Reels</h3>
+                                </div>
+                                <button class="camera-btn"><span class="material-icons">camera_alt</span></button>
+                            </div>
+                            <div class="video-container">
+                                <div class="video-placeholder">
+                                    <div class="play-icon"><span class="material-icons">play_arrow</span></div>
+                                </div>
+                            </div>
+                            <div class="reaction-buttons">
+                                <button class="reaction-btn" data-action="like">
+                                    <span class="material-icons">favorite</span>
+                                    <span class="reaction-count">24</span>
+                                </button>
+                                <button class="reaction-btn"><span class="material-icons">thumb_down</span></button>
+                                <button class="reaction-btn"><span class="material-icons">share</span></button>
+                            </div>
+                            <div class="reel-footer">
+                                <div class="user-section">
+                                    <div class="user-avatar">LS</div>
+                                    <div class="user-info">
+                                        <div class="username">laura_smith</div>
+                                        <div class="user-meta">18 • Available tonight</div>
+                                    </div>
+                                </div>
+                                <div class="reel-caption">#goodvibes #student</div>
+                                <button class="contact-btn">Contact Me</button>
+                            </div>
+                        </div>
+                        <!-- Reel 2 -->
+                        <div class="reel-item">
+                            <div class="reel-header">
+                                <div class="header-left">
+                                    <button class="back-btn"><span class="material-icons">arrow_back</span></button>
+                                    <h3 class="header-title">Reels</h3>
+                                </div>
+                                <button class="camera-btn"><span class="material-icons">camera_alt</span></button>
+                            </div>
+                            <div class="video-container">
+                                <div class="video-placeholder">
+                                    <video src="videos/Tate.mp4">Tatee</video>
+                                    <div class="play-icon"><span class="material-icons">play_arrow</span></div>
+                                </div>
+                            </div>
+                            <div class="reaction-buttons">
+                                <button class="reaction-btn liked" data-action="like">
+                                    <span class="material-icons">favorite</span>
+                                    <span class="reaction-count">156</span>
+                                </button>
+                                <button class="reaction-btn"><span class="material-icons">thumb_down</span></button>
+                                <button class="reaction-btn"><span class="material-icons">share</span></button>
+                            </div>
+                            <div class="reel-footer">
+                                <div class="user-section">
+                                    <div class="user-avatar">ZT</div>
+                                    <div class="user-info">
+                                        <div class="username">ZestyTate</div>
+                                        <div class="user-meta">22 • Online now</div>
+                                    </div>
+                                </div>
+                                <div class="reel-caption">Living my best life ✨ #model #lifestyle</div>
+                                <button class="contact-btn">Contact Me</button>
+                            </div>
+                        </div>
+                        <!-- Reel 3 -->
+                        <div class="reel-item">
+                            <div class="reel-header">
+                                <div class="header-left">
+                                    <button class="back-btn"><span class="material-icons">arrow_back</span></button>
+                                    <h3 class="header-title">Reels</h3>
+                                </div>
+                                <button class="camera-btn"><span class="material-icons">camera_alt</span></button>
+                            </div>
+                            <div class="video-container">
+                                <div class="video-placeholder">
+                                    <div class="play-icon"><span class="material-icons">play_arrow</span></div>
+                                </div>
+                            </div>
+                            <div class="reaction-buttons">
+                                <button class="reaction-btn" data-action="like">
+                                    <span class="material-icons">favorite</span>
+                                    <span class="reaction-count">40</span>
+                                </button>
+                                <button class="reaction-btn"><span class="material-icons">thumb_down</span></button>
+                                <button class="reaction-btn"><span class="material-icons">share</span></button>
+                            </div>
+                            <div class="reel-footer">
+                                <div class="user-section">
+                                    <div class="user-avatar">LS</div>
+                                    <div class="user-info">
+                                        <div class="username">LadyTunade</div>
+                                        <div class="user-meta">38 • Available tonight</div>
+                                    </div>
+                                </div>
+                                <div class="reel-caption">#stepmom #milf</div>
+                                <button class="contact-btn">Contact Me</button>
+                            </div>
+                        </div>
+                        <!-- Reel 4 -->
+                        <div class="reel-item">
+                            <div class="reel-header">
+                                <div class="header-left">
+                                    <button class="back-btn"><span class="material-icons">arrow_back</span></button>
+                                    <h3 class="header-title">Reels</h3>
+                                </div>
+                                <button class="camera-btn"><span class="material-icons">camera_alt</span></button>
+                            </div>
+                            <div class="video-container">
+                                <div class="video-placeholder">
+                                    <div class="play-icon"><span class="material-icons">play_arrow</span></div>
+                                </div>
+                            </div>
+                            <div class="reaction-buttons">
+                                <button class="reaction-btn" data-action="like">
+                                    <span class="material-icons">favorite</span>
+                                    <span class="reaction-count">566</span>
+                                </button>
+                                <button class="reaction-btn"><span class="material-icons">thumb_down</span></button>
+                                <button class="reaction-btn"><span class="material-icons">share</span></button>
+                            </div>
+                            <div class="reel-footer">
+                                <div class="user-section">
+                                    <div class="user-avatar">LS</div>
+                                    <div class="user-info">
+                                        <div class="username">BBCnabby</div>
+                                        <div class="user-meta">24 • Available tonight</div>
+                                    </div>
+                                </div>
+                                <div class="reel-caption">#zuluman #black</div>
+                                <button class="contact-btn">Contact Me</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+
+    <script>
+         
+        document.addEventListener('DOMContentLoaded', function() {
+            // Page Navigation 
+            const navLinks = document.querySelectorAll('.nav-link[data-page]');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    const page = link.getAttribute('data-page');
+                    
+                    // Update content
+                    contentSections.forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    document.getElementById(page + '-section').classList.add('active');
+                    
+                    // Update active link
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                });
+            });
+
+            //Sidebar Toggle 
+            const toggleBtn = document.getElementById('toggle-btn');
+            const sidebar = document.querySelector('.sidebar');
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('expanded');
+                if (!sidebar.classList.contains('expanded')) {
+                    document.querySelectorAll('.nav-section').forEach(section => {
+                        section.classList.remove('expanded');
+                        section.querySelector('.section-header').classList.remove('active');
+                    });
+                }
+            });
+
+            //Sidebar Section Dropdowns 
+            const sectionHeaders = document.querySelectorAll('.section-header');
+            sectionHeaders.forEach(header => {
+                header.addEventListener('click', (e) => {
+                    if (!sidebar.classList.contains('expanded')) return;
+                    const section = header.closest('.nav-section');
+                    section.classList.toggle('expanded');
+                    header.classList.toggle('active');
+                });
+            });
+            
+            // Reels Page Specific Logic 
+            // Back buttons in reels
+            document.querySelectorAll('.back-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Find the feed link and click it to switch pages
+                    const feedLink = document.querySelector('.nav-link[data-page="feed"]');
+                    if (feedLink) {
+                        feedLink.click();
+                    }
+                });
+            });
+
+            // Like button interaction
+            document.querySelectorAll('.reaction-btn[data-action="like"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.classList.toggle('liked');
+                    const countEl = this.querySelector('.reaction-count');
+                    let count = parseInt(countEl.textContent);
+                    this.classList.contains('liked') ? count++ : count--;
+                    countEl.textContent = count;
+                });
+            });
+
+            // Play icon click animation
+            document.querySelectorAll('.play-icon').forEach(playBtn => {
+                playBtn.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.9)';
+                    setTimeout(() => { this.style.transform = 'scale(1)'; }, 150);
+                });
+            });
+
+            // --- Initial State Setup ---
+            // Initialize sidebar state on load
+            if (window.innerWidth > 768) {
+                sidebar.classList.add('expanded');
+                // Auto-expand first section
+                setTimeout(() => {
+                    const firstSection = document.querySelector('.nav-section[data-section="explore"]');
+                    if(firstSection) {
+                       firstSection.classList.add('expanded');
+                       firstSection.querySelector('.section-header').classList.add('active');
+                    }
+                }, 300);
+            }
+        });
+        
+    </script>
+</body>
+</html>

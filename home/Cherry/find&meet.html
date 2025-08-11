@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherry - Find Creators</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #f4f6f8;
+            --cherry-gradient: linear-gradient(135deg, #a466ea 0%, #ca4fce 100%);
+            --text-dark: #333;
+            --text-muted: #a0aec0;
+            --online-color: #10b981;
+            --offline-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Search & Filters Section */
+        .search-filters-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            background: #f8f9fa;
+            color: var(--text-dark);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            outline: none;
+            background: white;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.06), 0 0 0 3px rgba(164, 102, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 20px;
+        }
+
+        /* Filter Pills */
+        .filter-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .filter-pill:hover {
+            background: linear-gradient(135deg, rgba(164, 102, 234, 0.1) 0%, rgba(202, 79, 206, 0.1) 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(164, 102, 234, 0.2);
+        }
+
+        .filter-pill.active {
+            background: var(--cherry-gradient);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(164, 102, 234, 0.3);
+        }
+
+        .filter-pill .material-icons {
+            font-size: 16px;
+        }
+
+        .dropdown-pill::after {
+            content: '';
+            margin-left: 4px;
+            border: 4px solid transparent;
+            border-top-color: currentColor;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            gap: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--cherry-gradient);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        /* Creator Grid */
+        .creators-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Enhanced Creator Card with Hover Effects */
+        .creator-card {
+            aspect-ratio: 3/4;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            background: linear-gradient(135deg, #a466ea 0%, #ca4fce 100%);
+            box-shadow: 0 4px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .creator-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Card hover effect layers */
+        .creator-card > .card-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: clip-path 0.6s, all 0.6s;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: 700;
+        }
+
+        .creator-card .card-layer-1 {
+            clip-path: polygon(0% 0%, 25% 0%, 0% 25%);
+            background: linear-gradient(135deg, #23a 0%, #34b 100%);
+            z-index: 3;
+        }
+
+        .creator-card .card-layer-1:hover {
+            clip-path: polygon(0% 0%, 170% 0%, 0% 170%);
+            z-index: 5;
+        }
+
+        .creator-card .card-layer-2 {
+            z-index: 2;
+            background: linear-gradient(135deg, #f16 0%, #e25 100%);
+            clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+        }
+
+        .creator-card .card-layer-1:hover ~ .card-layer-2 {
+            clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 0% 25%);
+        }
+
+        .creator-card .card-layer-3:hover ~ .card-layer-2 {
+            clip-path: polygon(0% 0%, 75% 0%, 100% 25%, 100% 100%, 0% 100%);
+        }
+
+        .creator-card .card-layer-3 {
+            clip-path: polygon(75% 100%, 100% 75%, 100% 100%);
+            background: linear-gradient(135deg, #dd2 0%, #ee3 100%);
+            color: #333;
+            z-index: 3;
+        }
+
+        .creator-card .card-layer-3:hover {
+            clip-path: polygon(-70% 100%, 100% -70%, 100% 100%);
+            z-index: 5;
+        }
+
+        /* Bottom Overlay - now with higher z-index */
+        .card-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+            padding: 16px 12px 12px 12px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .creator-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .creator-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .creator-name-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .name-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+        }
+
+        .name-status-dot.online {
+            background-color: var(--online-color);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        }
+
+        .name-status-dot.offline {
+            background-color: var(--offline-color);
+        }
+
+        .creator-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .creator-age {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-indicators {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .country-flag {
+            font-size: 16px;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .creators-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            .search-filters-section {
+                padding: 20px;
+            }
+            .filter-pills {
+                justify-content: center;
+            }
+            .creators-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .main-content {
+                gap: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .creators-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .creator-name {
+                font-size: 13px;
+            }
+            .creator-age {
+                font-size: 11px;
+            }
+            .card-overlay {
+                padding: 12px 8px 8px 8px;
+            }
+            .country-flag {
+                font-size: 14px;
+            }
+        }
+
+        /* Featured Badge */
+        .featured-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--cherry-gradient);
+            color: white;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(164, 102, 234, 0.4);
+            z-index: 11;
+        }
+
+        /* Loading animation */
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Smooth entrance animations */
+        .creator-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.6s ease forwards;
+        }
+
+        .creator-card:nth-child(1) { animation-delay: 0.1s; }
+        .creator-card:nth-child(2) { animation-delay: 0.2s; }
+        .creator-card:nth-child(3) { animation-delay: 0.3s; }
+        .creator-card:nth-child(4) { animation-delay: 0.4s; }
+        .creator-card:nth-child(5) { animation-delay: 0.5s; }
+        .creator-card:nth-child(6) { animation-delay: 0.6s; }
+        .creator-card:nth-child(7) { animation-delay: 0.7s; }
+        .creator-card:nth-child(8) { animation-delay: 0.8s; }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="search-filters-section">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search for creators or models…" id="searchInput">
+                <span class="material-icons search-icon">search</span>
+            </div>
+            
+            <div class="filter-pills">
+                <div class="filter-pill active" data-filter="meeting-now">
+                    Meeting Now
+                </div>
+                <div class="filter-pill" data-filter="unverified">
+                    Meets Unverified
+                </div>
+                <div class="filter-pill" data-filter="most-liked">
+                    Most Liked
+                </div>
+                <div class="filter-pill" data-filter="new-creators">
+                    New Creators
+                </div>
+                <div class="filter-pill dropdown-pill" data-filter="near-you">
+                    <span class="material-icons">location_on</span>
+                    Near You
+                </div>
+                <div class="filter-pill dropdown-pill" data-filter="all-locations">
+                    All Locations
+                </div>
+                <div class="filter-pill dropdown-pill" data-filter="categories">
+                    Categories
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <span class="material-icons">star</span>
+                    </div>
+                    <h2 class="section-title">Featured Creators</h2>
+                </div>
+                
+                <div class="creators-grid">
+                    <div class="creator-card" data-status="online" data-name="laura_smith">
+                        <div class="featured-badge">Featured</div>
+                        <div class="card-layer card-layer-1"> 
+                            <img src="Images/T01.png" alt="lady">
+                        </div>
+                        <div class="card-layer card-layer-2"> <img src="Images/TO2.png" alt="lady2"></div>
+                        <div class="card-layer card-layer-3"> <img src="Images/TO3.png" alt="lady3"></div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">laura_smith</div>
+                                    </div>
+                                    <div class="creator-age">18</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇺🇸</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="online" data-name="alyesax">
+                        <div class="featured-badge">Featured</div>
+                        <div class="card-layer card-layer-1">A</div>
+                        <div class="card-layer card-layer-2">X</div>
+                        <div class="card-layer card-layer-3">💎</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">AlyesaX</div>
+                                    </div>
+                                    <div class="creator-age">22</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇬🇧</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="online" data-name="rosty_rosa">
+                        <div class="featured-badge">Featured</div>
+                        <div class="card-layer card-layer-1">R</div>
+                        <div class="card-layer card-layer-2">R</div>
+                        <div class="card-layer card-layer-3">🌹</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">RostyRosa</div>
+                                    </div>
+                                    <div class="creator-age">19</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇨🇦</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="offline" data-name="kim">
+                        <div class="featured-badge">Featured</div>
+                        <div class="card-layer card-layer-1">K</div>
+                        <div class="card-layer card-layer-2">I</div>
+                        <div class="card-layer card-layer-3">🦋</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot offline"></div>
+                                        <div class="creator-name">KIM</div>
+                                    </div>
+                                    <div class="creator-age">19</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇰🇷</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="online" data-name="sofia_night">
+                        <div class="featured-badge">Featured</div>
+                        <div class="card-layer card-layer-1">S</div>
+                        <div class="card-layer card-layer-2">N</div>
+                        <div class="card-layer card-layer-3">🌙</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">sofia_night</div>
+                                    </div>
+                                    <div class="creator-age">25</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇪🇸</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="online" data-name="maya_love">
+                        <div class="featured-badge">Featured</div>
+                        <div class="card-layer card-layer-1">M</div>
+                        <div class="card-layer card-layer-2">L</div>
+                        <div class="card-layer card-layer-3">💖</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">maya_love</div>
+                                    </div>
+                                    <div class="creator-age">23</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇧🇷</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="offline" data-name="anna_belle">
+                        <div class="featured-badge">Featured</div>
+                        <div class="card-layer card-layer-1">A</div>
+                        <div class="card-layer card-layer-2">B</div>
+                        <div class="card-layer card-layer-3">🎀</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot offline"></div>
+                                        <div class="creator-name">anna_belle</div>
+                                    </div>
+                                    <div class="creator-age">21</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇫🇷</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="online" data-name="luna_star">
+                        <div class="featured-badge">Featured</div>
+                        <div class="card-layer card-layer-1">L</div>
+                        <div class="card-layer card-layer-2">S</div>
+                        <div class="card-layer card-layer-3">⭐</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">luna_star</div>
+                                    </div>
+                                    <div class="creator-age">20</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇮🇹</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <span class="material-icons">group</span>
+                    </div>
+                    <h2 class="section-title">All Creators</h2>
+                </div>
+                
+                <div class="creators-grid">
+                    <div class="creator-card" data-status="online" data-name="emma_rose">
+                        <div class="card-layer card-layer-1">E</div>
+                        <div class="card-layer card-layer-2">R</div>
+                        <div class="card-layer card-layer-3">🌸</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">emma_rose</div>
+                                    </div>
+                                    <div class="creator-age">24</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇦🇺</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="online" data-name="zara_moon">
+                        <div class="card-layer card-layer-1">Z</div>
+                        <div class="card-layer card-layer-2">M</div>
+                        <div class="card-layer card-layer-3">🌒</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">zara_moon</div>
+                                    </div>
+                                    <div class="creator-age">26</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇳🇱</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="offline" data-name="chloe_wild">
+                        <div class="card-layer card-layer-1">C</div>
+                        <div class="card-layer card-layer-2">W</div>
+                        <div class="card-layer card-layer-3">🔥</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot offline"></div>
+                                        <div class="creator-name">chloe_wild</div>
+                                    </div>
+                                    <div class="creator-age">22</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇩🇪</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="online" data-name="mia_sweet">
+                        <div class="card-layer card-layer-1">M</div>
+                        <div class="card-layer card-layer-2">S</div>
+                        <div class="card-layer card-layer-3">🍯</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">mia_sweet</div>
+                                    </div>
+                                    <div class="creator-age">19</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇸🇪</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="online" data-name="lily_grace">
+                        <div class="card-layer card-layer-1">L</div>
+                        <div class="card-layer card-layer-2">G</div>
+                        <div class="card-layer card-layer-3">🌺</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">lily_grace</div>
+                                    </div>
+                                    <div class="creator-age">27</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇯🇵</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="offline" data-name="ruby_fire">
+                        <div class="card-layer card-layer-1">R</div>
+                        <div class="card-layer card-layer-2">F</div>
+                        <div class="card-layer card-layer-3">💥</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot offline"></div>
+                                        <div class="creator-name">ruby_fire</div>
+                                    </div>
+                                    <div class="creator-age">23</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇲🇽</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="online" data-name="ivy_dream">
+                        <div class="card-layer card-layer-1">I</div>
+                        <div class="card-layer card-layer-2">D</div>
+                        <div class="card-layer card-layer-3">💭</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">ivy_dream</div>
+                                    </div>
+                                    <div class="creator-age">21</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇿🇦</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="creator-card" data-status="online" data-name="jade_lux">
+                        <div class="card-layer card-layer-1">J</div>
+                        <div class="card-layer card-layer-2">L</div>
+                        <div class="card-layer card-layer-3">✨</div>
+                        <div class="card-overlay">
+                            <div class="creator-info">
+                                <div class="creator-details">
+                                    <div class="creator-name-container">
+                                        <div class="name-status-dot online"></div>
+                                        <div class="creator-name">jade_lux</div>
+                                    </div>
+                                    <div class="creator-age">20</div>
+                                </div>
+                            </div>
+                            <div class="status-indicators">
+                                <div class="country-flag">🇦🇷</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Filter pill functionality
+            const filterPills = document.querySelectorAll('.filter-pill');
+            filterPills.forEach(pill => {
+                pill.addEventListener('click', () => {
+                    document.querySelector('.filter-pill.active').classList.remove('active');
+                    pill.classList.add('active');
+                    // Add actual filter logic here based on pill.dataset.filter
+                });
+            });
+
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            const creatorCards = document.querySelectorAll('.creator-card');
+
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+
+                creatorCards.forEach(card => {
+                    const creatorName = card.dataset.name.toLowerCase();
+                    if (creatorName.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
